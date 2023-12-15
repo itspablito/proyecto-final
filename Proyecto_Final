@@ -1,0 +1,819 @@
+import os
+import hashlib
+import datetime
+import pandas as pd
+import tkinter as tk
+from tkinter import ttk, Label
+from PIL import Image, ImageTk
+from tabulate import tabulate
+
+dataFramePlatos = pd.DataFrame
+
+matrizPlatos = []
+
+def cargarDatos():
+    cargarPlatos()
+
+def cargarPlatos():
+
+    global archivoPlatos
+    global matrizPlatos
+    global dataFramePlatos
+
+    nombreArchivo = 'platos.txt'
+    rutaArchivo = os.path.join(os.path.dirname(__file__), nombreArchivo)
+
+    
+    if not os.path.isfile(rutaArchivo):
+
+        archivoPlatos = open(rutaArchivo, "a")
+        print("Se ha creado el archivo Platos")
+    else:
+        archivoPlatos = open(rutaArchivo, "r")
+        print("Se cargaron los Platos con exito")
+
+    for linea in archivoPlatos:
+        id, nombrePlato, precioPlato, descripcionPlato, disponibilidad = linea.strip().split(',')
+        plato = [id, nombrePlato, precioPlato, descripcionPlato, disponibilidad] 
+        matrizPlatos.append(plato)
+
+    dataFramePlatos = pd.DataFrame(matrizPlatos, columns = ["ID","Nombre", "Precio", "Descripcion", "Disponibilidad"])
+    print(dataFramePlatos)  
+
+def guardarPlatos(id, nombre, precio, descripcion, disponibilidad):
+
+    global archivoPlatos
+    global matrizPlatos
+    global dataFramePlatos
+
+    with open(archivoPlatos.name, "a") as f:
+        f.write(f"{id},{nombre},{precio},{descripcion},{disponibilidad}\n")
+        f.flush()
+
+    nuevoPlato = [id, nombre, precio, descripcion, disponibilidad]
+
+    dataFramePlatos.loc[len(dataFramePlatos)] = nuevoPlato
+
+def idPlates():
+
+    id =dataFramePlatos.iloc[-1]["ID"]
+    id = int(id)
+    id += 1
+
+    return id
+
+def gestionPlatos():
+    print("\n-----Gestion de platos-----")
+    print("1. Agregar")
+    print("2. Eliminar")
+    print("3. Actualizar")
+    print("4. Menu principal")
+    print("------------------------")
+
+    opcion = int(input("¿Que desea hacer?: "))
+
+    while (opcion < 5 and opcion > 0):
+        if opcion == 1:
+            agregarPlato()
+            break
+
+        if opcion == 2:
+            eliminarPlato()
+            break
+        
+        if opcion == 3:
+            actualizarPlato()
+            break
+    return 0
+
+def agregarPlato():
+    
+    print("\n-----Agregar Plato-----")
+    nombre = input("Nombre del plato: ")
+    precio = input("Precio del plato: ")
+    descripcion = input("Descripción del plato: ")
+    disponibilidad = input("Disponibilidad del plato (Sí/No): ").upper()
+    id = idPlates()
+
+    guardarPlatos(id, nombre, precio, descripcion, disponibilidad)
+    gestionPlatos()
+
+def eliminarPlato():
+
+    print(dataFramePlatos)
+    
+    id = input("Ingrese la ID a eliminar: ")
+
+
+    if id in dataFramePlatos["ID"].values:
+        index = dataFramePlatos[dataFramePlatos["ID"] == id].index
+        dataFramePlatos.drop(index, inplace=True)
+        matrizPlatos.pop(index[0])
+        print("Plato eliminado")
+        dataFramePlatos.to_csv('Platos.txt', index=False)
+
+    else:
+        print(f"No se encontro la id: {id}")
+
+    print(dataFramePlatos)
+    print(matrizPlatos)
+
+
+def actualizarPlato():
+
+    print("\n-----Actualizar Plato-----")
+    id = input("Ingrese la ID: ")
+
+    if id in dataFramePlatos["ID"].values:
+        print("Ingrese los nuevos platos")
+        nombre = input("Nuevo nombre del plato: ")
+        precio = input("Nuevo precio del plato: ")
+        descripcion = input("Nueva descripción del plato: ")
+        disponibilidad = input("Nueva disponibilidad del plato (Sí/No): ").upper()
+
+        dataFramePlatos.loc[dataFramePlatos["ID"] == id, ["Nombre", "Precio", "Descripcion", "Disponibilidad"]] = [nombre, precio, descripcion, disponibilidad]
+        dataFramePlatos.to_csv('Platos.txt', index=False)
+
+        print("Plato actualizado")
+
+    else:
+        print(f"No se encontró la ID: {id}")
+
+
+
+
+
+
+def title(place_position):
+    text1 = tk.Label(place_position, text = "Mi Restaurante", font = ("Aharoni",20,"bold"))
+    text1.pack()
+
+
+def button_2(place_position,image):
+    button_login = tk.Button   (place_position, text="Iniciar sesión", relief = "flat", image = image ,activeforeground="#FFFFFF" ,
+                                    compound=tk.CENTER, font=("Verdana Pro Cond Black", 13, "bold"), fg = "#FFFFFF",  borderwidth=0)
+    button_login.config(command= lambda: button_1_function(place_position, "inicio"))
+    button_login.pack()
+
+
+def button_1(place_position,image):
+    button_register = tk.Button   (place_position, text="Registrarse", relief = "flat", image = image ,activeforeground="#FFFFFF" ,
+                                    compound=tk.CENTER, font=("Verdana Pro Cond Black", 13, "bold"), fg = "#FFFFFF",  borderwidth=0)
+    button_register.config(command= lambda: button_1_function(place_position,"Registro"))
+    button_register.pack(pady= 20) 
+
+
+def open_window_1():
+    window = tk.Tk()
+    window.geometry("800x700+350+50")
+    window.title("Restaurante")
+    window.resizable(True,True)
+    title(window)
+
+    logo_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuchilleria.png")
+    image_resized = logo_route.resize((50,50), Image.BILINEAR)
+    image_logo = ImageTk.PhotoImage(image_resized)
+    label = Label(window, image= image_logo )
+    label.pack(pady = 20)
+
+    message_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\Mensaje.png")
+    image_resized = message_route.resize((500,250), Image.BILINEAR)
+    text_box = ImageTk.PhotoImage(image_resized)
+    mensaje = ("Nuestro restaurante es un lugar donde ofrecemos\n"
+            "una variedad de platos deliciosos y recursos\n"
+            "culinarios para el público para satisfacer tus\n"
+            "necesidaplacedes culinarias y hacete disfrutar de una\n"
+            "experiencia gastronómica excepcional")
+    label_imagen = tk.Label(window, image=text_box)
+    label_imagen.pack(padx=50,pady=0)
+    label = tk.Label(label_imagen, text=mensaje, justify="left", font=("Verdana Pro Cond Black", 12, "bold"), bg="#FFFFFF")
+    label.pack(padx=50,pady=90)
+
+    button_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\botones_menu.png")
+    image_resized = button_route.resize((200,40), Image.BILINEAR)
+    button_image = ImageTk.PhotoImage(image_resized)
+    button_2(window,button_image)
+    button_1(window,button_image)
+
+    window.mainloop()
+
+
+
+def button_1_function(place, tab_name):
+    close_window(place)
+    open_window_2(tab_name)
+
+
+
+def open_window_2(tab_name):
+    window_2 = tk.Tk()
+    window_2.geometry("800x700+350+50")
+    window_2.title("Restaurante") 
+    window_2.resizable(True,True)
+    nota = ttk.Notebook(window_2)
+    tab_1 = ttk.Frame(nota)
+    tab_2 = ttk.Frame(nota)
+    nota.add(tab_1,text="Inicio")
+    nota.add(tab_2,text="Registro")
+    if tab_name == "Registro":
+        nota.select(tab_2)
+    else:
+        nota.select(tab_1)
+    nota.pack(fill='both', expand=True)
+    title(tab_1)
+    title(tab_2)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuchilleria.png")
+    imagen_resized = imagen.resize((50,50), Image.BILINEAR)
+    image_logo = ImageTk.PhotoImage(imagen_resized)
+    label_image_1 = Label(tab_1, image= image_logo )
+    label_image_1.pack(pady = 20)    
+    label_image_2 = Label(tab_2, image= image_logo )
+    label_image_2.pack(pady = 20)
+    
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuadro_registro_inicio_sesion.png")
+    imagen_resized_1 = imagen.resize((430,475), Image.BILINEAR)
+    imagen_resized_2 = imagen.resize((430,400), Image.BILINEAR)
+    register_box = ImageTk.PhotoImage(imagen_resized_1)
+    login_box = ImageTk.PhotoImage(imagen_resized_2)
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\entrada.png")
+    imagen_resized = imagen.resize((250,35), Image.BILINEAR)
+    image_entry= ImageTk.PhotoImage(imagen_resized)
+    button_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\botones_menu.png")
+    image_resized = button_route.resize((200,40), Image.BILINEAR)
+    button_image = ImageTk.PhotoImage(image_resized)
+
+
+    frame_1 = tk.Frame(tab_1, width=430, height=400)
+    frame_1.pack()
+
+    label_image = tk.Label(frame_1, image=login_box)
+    label_image.place(x=0, y=0)
+    login_label = tk.Label(frame_1,text="Inicio seción", font=("Verdana Pro Cond Black", 18, "bold"), fg="#FFFFFF", bg="#737373")
+    login_label.place(x=150, y=50)
+
+    email_label_1 = tk.Label(frame_1,text="Email", font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF", bg="#737373")
+    email_label_1.place(x=90,y=110)
+    label_image_e_1 = tk.Label(frame_1, image=image_entry,fg="#FFFFFF", bg="#737373")
+    label_image_e_1.place(x=90, y=140 )
+    entry_username_1 = tk.Entry(frame_1,width=38,borderwidth=0, highlightthickness=0)
+    entry_username_1.place(x=100, y=150)
+
+    password_label_1 = tk.Label(frame_1,text="Contraseña", font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF", bg="#737373")
+    password_label_1.place(x=90, y=200)
+    label_image_p_1 = tk.Label(frame_1, image=image_entry,fg="#FFFFFF", bg="#737373")
+    label_image_p_1.place(x=90, y=230 )
+    entry_password_1 = tk.Entry(frame_1,width=38,borderwidth=0, highlightthickness=0)
+    entry_password_1.place(x=100, y=240)
+
+    button_login= tk.Button(frame_1, text="Iniciar seción", relief = "flat", image = button_image ,activeforeground="#FFFFFF", bg="#737373",
+                              activebackground="#737373", compound=tk.CENTER, font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_login.config(command=lambda: button_2_function_1(window_2))
+    button_login.place(x=120, y=300)
+
+
+    frame_2 = tk.Frame(tab_2, width=430, height=475)
+    frame_2.pack()
+
+    label_image = tk.Label(frame_2, image=register_box)
+    label_image.place(x=0, y=0)
+    register_label = tk.Label(frame_2,text="Registrarse", font=("Verdana Pro Cond Black", 18, "bold"), fg="#FFFFFF", bg="#737373")
+    register_label.place(x=155, y=50)
+
+    email_label = tk.Label(frame_2,text="Email", font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF", bg="#737373")
+    email_label.place(x=90,y=110)
+    label_image_e = tk.Label(frame_2, image=image_entry,fg="#FFFFFF", bg="#737373")
+    label_image_e.place(x=90, y=140 )
+    entry_username = tk.Entry(frame_2,width=38,borderwidth=0, highlightthickness=0)
+    entry_username.place(x=100, y=150)
+
+    password_label = tk.Label(frame_2,text="Contraseña", font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF", bg="#737373")
+    password_label.place(x=90, y=200)
+    label_image_p = tk.Label(frame_2, image=image_entry,fg="#FFFFFF", bg="#737373")
+    label_image_p.place(x=90, y=230 )
+    entry_password = tk.Entry(frame_2,width=38,borderwidth=0, highlightthickness=0)
+    entry_password.place(x=100, y=240)
+
+    confirm_password_label = tk.Label(frame_2,text="Confirmar contraseña", font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF", bg="#737373")
+    confirm_password_label.place(x=92, y=290)
+    label_image_cp = tk.Label(frame_2, image=image_entry,fg="#FFFFFF", bg="#737373")
+    label_image_cp.place(x=90, y=320 )
+    entry_password_confirm = tk.Entry(frame_2,width=38,borderwidth=0, highlightthickness=0)
+    entry_password_confirm.place(x=100, y=330)
+
+    boton_register= tk.Button(frame_2, text="Registrarse", relief = "flat", image = button_image ,activeforeground="#FFFFFF", bg="#737373",
+                              activebackground="#737373", compound=tk.CENTER, font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF",  borderwidth=0)
+    boton_register.config(command=lambda: button_2_function_1(window_2))
+    boton_register.place(x=120, y=375)
+
+    window_2.mainloop()
+
+
+def button_2_function_1(place):
+        close_window(place)
+        open_window_3()
+
+
+def open_window_3():
+    window_3 = tk.Tk()
+    window_3.geometry("800x700+350+50")
+    window_3.title("Restaurante") 
+    window_3.resizable(True,True)
+    title(window_3)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuchilleria.png")
+    imagen_resized = imagen.resize((50,50), Image.BILINEAR)
+    image_logo = ImageTk.PhotoImage(imagen_resized)
+    label_image_1 = Label(window_3, image= image_logo )
+    label_image_1.pack(pady = 20)    
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\menu.png")
+    imagen_resized_2 = imagen.resize((612,425), Image.BILINEAR)
+    menu_box = ImageTk.PhotoImage(imagen_resized_2)
+    button_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\botones_menu.png")
+    image_resized = button_route.resize((350,58), Image.BILINEAR)
+    button_menu_image = ImageTk.PhotoImage(image_resized)
+
+    frame_1 = tk.Frame(window_3, width=612, height=425)
+    frame_1.pack()
+
+    label_image = tk.Label(frame_1, image=menu_box)
+    label_image.place(x=0, y=0)
+    login_label = tk.Label(frame_1,text="Bienvenido", font=("Verdana Pro Cond Black", 20, "bold"), fg="#000000", bg="#dfe3e8")
+    login_label.place(x=245, y=30)
+    
+    button_dish_management= tk.Button(frame_1, text="Gestión platos", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_dish_management.config(command=lambda: button_3_function_1(window_3))
+    button_dish_management.place(x=145, y=80)
+    button_dish_management_2= tk.Button(frame_1, text="Gestión mesas", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_dish_management_2.config(command=lambda:button_3_function_2(window_3))
+    button_dish_management_2.place(x=145, y=160)
+    button_dish_management_3= tk.Button(frame_1, text="Gestión pedidos", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_dish_management_3.config(command=lambda:button_3_function_3(window_3))
+    button_dish_management_3.place(x=145, y=240)
+    button_dish_management_4= tk.Button(frame_1, text="Cerrar seción", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_dish_management_4.config()
+    button_dish_management_4.place(x=145, y=320)
+
+    window_3.mainloop()
+
+
+def button_3_function_1(place):
+        close_window(place)
+        open_dish_management()
+        
+def button_3_function_2(place):
+        close_window(place)
+        open_table__management()
+        
+def button_3_function_3(place):
+        close_window(place)
+        open_order_management()
+
+def open_dish_management():
+    window_4 = tk.Tk()
+    window_4.geometry("800x700+350+50")
+    window_4.title("Restaurante") 
+    window_4.resizable(True,True)
+    title(window_4)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuchilleria.png")
+    imagen_resized = imagen.resize((50,50), Image.BILINEAR)
+    image_logo = ImageTk.PhotoImage(imagen_resized)
+    label_image_1 = Label(window_4, image= image_logo )
+    label_image_1.pack(pady = 20)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\menu.png")
+    imagen_resized_2 = imagen.resize((612,425), Image.BILINEAR)
+    menu_box = ImageTk.PhotoImage(imagen_resized_2)
+    button_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\botones_menu.png")
+    image_resized = button_route.resize((250,50), Image.BILINEAR)
+    button_menu_image = ImageTk.PhotoImage(image_resized)
+
+    frame_1 = tk.Frame(window_4, width=612, height=425)
+    frame_1.pack()
+
+    label_image = tk.Label(frame_1, image=menu_box)
+    label_image.place(x=0, y=0)
+    login_label = tk.Label(frame_1,text="Gestión de Platos", font=("Verdana Pro Cond Black", 20, "bold"), fg="#000000", bg="#dfe3e8")
+    login_label.place(x=210, y=30)
+
+    button_dish_management_menu= tk.Button(frame_1, text="Agregar", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_dish_management_menu.config(command=lambda:button_4_function_1(window_4))
+    button_dish_management_menu.place(x=200, y=125)
+    button_dish_management_menu_2= tk.Button(frame_1, text="Eliminar", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_dish_management_menu_2.config(command=lambda:button_4_function_2(window_4,dataFramePlatos))
+    button_dish_management_menu_2.place(x=200, y=225)
+    button_dish_management_menu_3= tk.Button(frame_1, text="Actualizar", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_dish_management_menu_3.config(command=lambda:button_4_function_3(window_4,dataFramePlatos))
+    button_dish_management_menu_3.place(x=200, y=325)
+
+    window_4.mainloop()
+
+
+def button_4_function_1(place):
+    close_window(place)
+    open_dish_management_add()
+
+
+def button_4_function_2(place, frame_platos):
+    close_window(place)
+    open_dish_management_general(frame_platos)
+    
+
+def button_4_function_3(place,frame_platos_2):
+    close_window(place)
+    open_dish_management_general(frame_platos_2)
+
+
+def open_dish_management_add():
+    window_5 = tk.Tk()
+    window_5.geometry("800x700+350+50")
+    window_5.title("Restaurante") 
+    window_5.resizable(True,True)
+    title(window_5)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuchilleria.png")
+    imagen_resized = imagen.resize((50,50), Image.BILINEAR)
+    image_logo = ImageTk.PhotoImage(imagen_resized)
+    label_image_1 = Label(window_5, image= image_logo )
+    label_image_1.pack(pady = 20)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\menu.png")
+    imagen_resized_2 = imagen.resize((612,425), Image.BILINEAR)
+    login_box = ImageTk.PhotoImage(imagen_resized_2)
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\entrada.png")
+    imagen_resized = imagen.resize((250,35), Image.BILINEAR)
+    image_entry= ImageTk.PhotoImage(imagen_resized)
+    button_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\botones_menu.png")
+    image_resized = button_route.resize((200,40), Image.BILINEAR)
+    button_image = ImageTk.PhotoImage(image_resized)
+
+    frame_1 = tk.Frame(window_5, width=612, height=425)
+    frame_1.pack()
+
+
+    label_image = tk.Label(frame_1, image=login_box)
+    label_image.place(x=0, y=0)
+    login_label = tk.Label(frame_1,text="Agregar platos", font=("Verdana Pro Cond Black", 18, "bold"), fg="#000000", bg="#dfe3e8")
+    login_label.place(x=200, y=50)
+
+    name_label = tk.Label(frame_1,text="Nombre", font=("Verdana Pro Cond Black", 12, "bold"), fg="#000000", bg="#dfe3e8")
+    name_label.place(x=52, y=100)
+    label_image_name = tk.Label(frame_1, image=image_entry,fg="#FFFFFF", bg="#dfe3e8")
+    label_image_name.place(x=50, y=130)
+    entry_name = tk.Entry(frame_1,width=38,borderwidth=0, highlightthickness=0)
+    entry_name.place(x=60, y=140)
+
+    description_label = tk.Label(frame_1,text="Descripción", font=("Verdana Pro Cond Black", 12, "bold"), fg="#000000", bg="#dfe3e8")
+    description_label.place(x=52, y=220)
+    label_image_description = tk.Label(frame_1, image=image_entry,fg="#FFFFFF", bg="#dfe3e8")
+    label_image_description.place(x=50, y=250)
+    entry_description = tk.Entry(frame_1,width=38,borderwidth=0, highlightthickness=0)
+    entry_description.place(x=60, y=260)
+
+    price_label = tk.Label(frame_1,text="Precio", font=("Verdana Pro Cond Black", 12, "bold"), fg="#000000", bg="#dfe3e8")
+    price_label.place(x=302, y=100)
+    label_image_price = tk.Label(frame_1, image=image_entry,fg="#FFFFFF", bg="#dfe3e8")
+    label_image_price.place(x=300, y=130)
+    entry_price = tk.Entry(frame_1,width=38,borderwidth=0, highlightthickness=0)
+    entry_price.place(x=310, y=140)
+
+    disponibility_label = tk.Label(frame_1,text="Disponibilidad", font=("Verdana Pro Cond Black", 12, "bold"), fg="#000000", bg="#dfe3e8")
+    disponibility_label.place(x=302, y=220)
+    label_image_disponibility = tk.Label(frame_1, image=image_entry,fg="#FFFFFF", bg="#dfe3e8")
+    label_image_disponibility.place(x=300, y=250)
+    entry_disponibility = tk.Entry(frame_1,width=38,borderwidth=0, highlightthickness=0)
+    entry_disponibility.place(x=310, y=260)
+
+    button_add= tk.Button(frame_1, text="Agregar", relief = "flat", image = button_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_add.config()
+    button_add.place(x=200, y=300)
+
+    window_5.mainloop()
+
+
+def open_dish_management_general(dataframe):
+    window_6 = tk.Tk()
+    window_6.geometry("800x700+350+50")
+    window_6.title("Restaurante") 
+    window_6.resizable(True,True)
+    title(window_6)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuchilleria.png")
+    imagen_resized = imagen.resize((50,50), Image.BILINEAR)
+    image_logo = ImageTk.PhotoImage(imagen_resized)
+    label_image_1 = Label(window_6, image= image_logo )
+    label_image_1.pack(pady = 20)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\menu.png")
+    imagen_resized_2 = imagen.resize((612,425), Image.BILINEAR)
+    login_box = ImageTk.PhotoImage(imagen_resized_2)
+    button_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\botones_menu.png")
+    image_resized = button_route.resize((200,40), Image.BILINEAR)
+    button_image = ImageTk.PhotoImage(image_resized)
+
+    frame_1 = tk.Frame(window_6, width=612, height=425)
+    frame_1.pack()
+    
+    dataframe_text = dataframe.to_string()
+
+    label_image = tk.Label(frame_1, image=login_box)
+    label_image.place(x=0, y=0)
+    login_label = tk.Label(frame_1,text="Platos", font=("Verdana Pro Cond Black", 18, "bold"), fg="#000000", bg="#dfe3e8")
+    login_label.place(x=250, y=50)
+    tree = ttk.Treeview(frame_1, height=15, columns=dataframe.columns)
+    tree.pack(expand=True, fill='both')
+
+    
+
+    text_widget = tk.Text(window_6, height=10, width=40)
+    text_widget.insert(tk.END, dataframe_text)
+    text_widget.place(x=100, y=100)
+
+    button_delete= tk.Button(frame_1, text="Eliminar", relief = "flat", image = button_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_delete.config()
+    button_delete.place(x=100, y=300)
+    button_update= tk.Button(frame_1, text="Actualizar", relief = "flat", image = button_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_update.config()
+    button_update.place(x=300, y=300)
+
+    window_6.mainloop()
+
+
+def open_table__management():
+    window_7 = tk.Tk()
+    window_7.geometry("800x700+350+50")
+    window_7.title("Restaurante") 
+    window_7.resizable(True,True)
+    title(window_7)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuchilleria.png")
+    imagen_resized = imagen.resize((50,50), Image.BILINEAR)
+    image_logo = ImageTk.PhotoImage(imagen_resized)
+    label_image_1 = Label(window_7, image= image_logo )
+    label_image_1.pack(pady = 20)    
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\menu.png")
+    imagen_resized_2 = imagen.resize((612,425), Image.BILINEAR)
+    menu_box = ImageTk.PhotoImage(imagen_resized_2)
+    button_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\botones_menu.png")
+    image_resized = button_route.resize((250,50), Image.BILINEAR)
+    button_menu_image = ImageTk.PhotoImage(image_resized)
+
+    frame_1 = tk.Frame(window_7, width=612, height=425)
+    frame_1.pack()
+
+    label_image = tk.Label(frame_1, image=menu_box)
+    label_image.place(x=0, y=0)
+    login_label = tk.Label(frame_1,text="Gestion de mesas", font=("Verdana Pro Cond Black", 20, "bold"), fg="#000000", bg="#dfe3e8")
+    login_label.place(x=210, y=30)
+    
+    button_table_management= tk.Button(frame_1, text="Agregar", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_table_management.config(command=lambda:button_7_function_1(window_7))
+    button_table_management.place(x=200, y=125)
+    button_table_management_2= tk.Button(frame_1, text="Eliminar", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_table_management_2.config(command=lambda:button_7_function_2(window_7))
+    button_table_management_2.place(x=200, y=225)
+    button_table_management_3= tk.Button(frame_1, text="Actualizar", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_table_management_3.config(command=lambda:button_7_function_3(window_7))
+    button_table_management_3.place(x=200, y=325)
+
+    window_7.mainloop()
+
+
+def button_7_function_1(place):
+    close_window(place)
+    open_table_management_add()
+
+
+def button_7_function_2(place):
+    close_window(place)
+    open_table_management_general()
+
+
+def button_7_function_3(place):
+    close_window(place)
+    open_table_management_general()
+
+
+def open_table_management_add():
+    window_8 = tk.Tk()
+    window_8.geometry("800x700+350+50")
+    window_8.title("Restaurante") 
+    window_8.resizable(True,True)
+    title(window_8)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuchilleria.png")
+    imagen_resized = imagen.resize((50,50), Image.BILINEAR)
+    image_logo = ImageTk.PhotoImage(imagen_resized)
+    label_image_1 = Label(window_8, image= image_logo )
+    label_image_1.pack(pady = 20)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\menu.png")
+    imagen_resized_2 = imagen.resize((612,425), Image.BILINEAR)
+    login_box = ImageTk.PhotoImage(imagen_resized_2)
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\entrada.png")
+    imagen_resized = imagen.resize((250,35), Image.BILINEAR)
+    image_entry= ImageTk.PhotoImage(imagen_resized)
+    button_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\botones_menu.png")
+    image_resized = button_route.resize((200,40), Image.BILINEAR)
+    button_image = ImageTk.PhotoImage(image_resized)
+
+    frame_1 = tk.Frame(window_8, width=612, height=425)
+    frame_1.pack()
+
+
+    label_image = tk.Label(frame_1, image=login_box)
+    label_image.place(x=0, y=0)
+    login_label = tk.Label(frame_1,text="Agregar mesa", font=("Verdana Pro Cond Black", 18, "bold"), fg="#000000", bg="#dfe3e8")
+    login_label.place(x=200, y=50)
+
+    date_label = tk.Label(frame_1,text="Fecha", font=("Verdana Pro Cond Black", 12, "bold"), fg="#000000", bg="#dfe3e8")
+    date_label.place(x=52, y=100)
+    label_image_date = tk.Label(frame_1, image=image_entry,fg="#FFFFFF", bg="#dfe3e8")
+    label_image_date.place(x=50, y=130)
+    entry_date = tk.Entry(frame_1,width=38,borderwidth=0, highlightthickness=0)
+    entry_date.place(x=60, y=140)
+
+    n_persons_label = tk.Label(frame_1,text="Número de personas", font=("Verdana Pro Cond Black", 12, "bold"), fg="#000000", bg="#dfe3e8")
+    n_persons_label.place(x=52, y=220)
+    label_image_n_persons = tk.Label(frame_1, image=image_entry,fg="#FFFFFF", bg="#dfe3e8")
+    label_image_n_persons.place(x=50, y=250)
+    entry_n_persons = tk.Entry(frame_1,width=38,borderwidth=0, highlightthickness=0)
+    entry_n_persons.place(x=60, y=260)
+
+    hour_label = tk.Label(frame_1,text="Hora", font=("Verdana Pro Cond Black", 12, "bold"), fg="#000000", bg="#dfe3e8")
+    hour_label.place(x=302, y=100)
+    label_image_hour = tk.Label(frame_1, image=image_entry,fg="#FFFFFF", bg="#dfe3e8")
+    label_image_hour.place(x=300, y=130)
+    entry_hour = tk.Entry(frame_1,width=38,borderwidth=0, highlightthickness=0)
+    entry_hour.place(x=310, y=140)
+
+
+    button_add= tk.Button(frame_1, text="Agregar", relief = "flat", image = button_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_add.config()
+    button_add.place(x=200, y=300)
+
+    window_8.mainloop()
+
+
+def open_table_management_general():
+    window_9 = tk.Tk()
+    window_9.geometry("800x700+350+50")
+    window_9.title("Restaurante") 
+    window_9.resizable(True,True)
+    title(window_9)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuchilleria.png")
+    imagen_resized = imagen.resize((50,50), Image.BILINEAR)
+    image_logo = ImageTk.PhotoImage(imagen_resized)
+    label_image_1 = Label(window_9, image= image_logo )
+    label_image_1.pack(pady = 20)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\menu.png")
+    imagen_resized_2 = imagen.resize((612,425), Image.BILINEAR)
+    login_box = ImageTk.PhotoImage(imagen_resized_2)
+    button_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\botones_menu.png")
+    image_resized = button_route.resize((200,40), Image.BILINEAR)
+    button_image = ImageTk.PhotoImage(image_resized)
+
+    frame_1 = tk.Frame(window_9, width=612, height=425)
+    frame_1.pack()
+
+    label_image = tk.Label(frame_1, image=login_box)
+    label_image.place(x=0, y=0)
+    login_label = tk.Label(frame_1,text="Mesas", font=("Verdana Pro Cond Black", 18, "bold"), fg="#000000", bg="#dfe3e8")
+    login_label.place(x=250, y=50)
+    button_delete_table= tk.Button(frame_1, text="Eliminar", relief = "flat", image = button_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_delete_table.config()
+    button_delete_table.place(x=100, y=300)
+    button_update_table= tk.Button(frame_1, text="Actualizar", relief = "flat", image = button_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_update_table.config()
+    button_update_table.place(x=300, y=300)
+
+    window_9.mainloop()
+
+
+def open_order_management():
+    window_10 = tk.Tk()
+    window_10.geometry("800x700+350+50")
+    window_10.title("Restaurante") 
+    window_10.resizable(True,True)
+    title(window_10)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuchilleria.png")
+    imagen_resized = imagen.resize((50,50), Image.BILINEAR)
+    image_logo = ImageTk.PhotoImage(imagen_resized)
+    label_image_1 = Label(window_10, image= image_logo )
+    label_image_1.pack(pady = 20)    
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\menu.png")
+    imagen_resized_2 = imagen.resize((612,425), Image.BILINEAR)
+    menu_box = ImageTk.PhotoImage(imagen_resized_2)
+    button_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\botones_menu.png")
+    image_resized = button_route.resize((250,50), Image.BILINEAR)
+    button_menu_image = ImageTk.PhotoImage(image_resized)
+
+    frame_1 = tk.Frame(window_10, width=612, height=425)
+    frame_1.pack()
+
+    label_image = tk.Label(frame_1, image=menu_box)
+    label_image.place(x=0, y=0)
+    login_label = tk.Label(frame_1,text="Gestion de pedidos", font=("Verdana Pro Cond Black", 20, "bold"), fg="#000000", bg="#dfe3e8")
+    login_label.place(x=210, y=30)
+    
+    button_order_management= tk.Button(frame_1, text="Realizar", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_order_management.config(command=lambda:button_10_function_1(window_10))
+    button_order_management.place(x=200, y=125)
+    button_order_management_2= tk.Button(frame_1, text="Eliminar", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_order_management_2.config(command=lambda:button_10_function_2(window_10))
+    button_order_management_2.place(x=200, y=225)
+    button_order_management_3= tk.Button(frame_1, text="Actualizar", relief = "flat", image = button_menu_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 16, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_order_management_3.config(command=lambda:button_10_function_3(window_10))
+    button_order_management_3.place(x=200, y=325)
+
+    window_10.mainloop()
+
+
+
+def button_10_function_1(place):
+    close_window(place)
+    open_order_management_add()
+
+
+def button_10_function_2(place):
+    close_window(place)
+
+
+def button_10_function_3(place):
+    close_window(place)
+
+
+def open_order_management_add():
+    window_11 = tk.Tk()
+    window_11.geometry("800x700+350+50")
+    window_11.title("Restaurante") 
+    window_11.resizable(True,True)
+    title(window_11)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\cuchilleria.png")
+    imagen_resized = imagen.resize((50,50), Image.BILINEAR)
+    image_logo = ImageTk.PhotoImage(imagen_resized)
+    label_image_1 = Label(window_11, image= image_logo )
+    label_image_1.pack(pady = 20)
+
+    imagen = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\menu.png")
+    imagen_resized_2 = imagen.resize((612,425), Image.BILINEAR)
+    order_box = ImageTk.PhotoImage(imagen_resized_2)
+    button_route = Image.open("C:\\Users\\juanp\\OneDrive\\Documentos\\Proyecto Final FPI\\botones_menu.png")
+    image_resized = button_route.resize((200,40), Image.BILINEAR)
+    button_image = ImageTk.PhotoImage(image_resized)
+
+    frame_1 = tk.Frame(window_11, width=612, height=425)
+    frame_1.pack()
+
+    label_image = tk.Label(frame_1, image=order_box)
+    label_image.place(x=0, y=0)
+    order_label = tk.Label(frame_1,text="Realizar pedido", font=("Verdana Pro Cond Black", 18, "bold"), fg="#000000", bg="#dfe3e8")
+    order_label.place(x=200, y=50)
+    n_dish_label = tk.Label(frame_1,text="N. plato", font=("Verdana Pro Cond Black", 12, "bold"), fg="#000000", bg="#dfe3e8")
+    n_dish_label.place(x=100, y=100)
+    n_table_label = tk.Label(frame_1,text="N. mesa", font=("Verdana Pro Cond Black", 12, "bold"), fg="#000000", bg="#dfe3e8")
+    n_table_label.place(x=500, y=100)
+
+    button_add= tk.Button(frame_1, text="Realizar", relief = "flat", image = button_image ,activeforeground="#FFFFFF", bg="#dfe3e8",
+                              activebackground="#dfe3e8", compound=tk.CENTER, font=("Verdana Pro Cond Black", 12, "bold"), fg="#FFFFFF",  borderwidth=0)
+    button_add.config()
+    button_add.place(x=200, y=300)
+
+    window_11.mainloop()
+
+
+def close_window(place):
+    place.destroy()
+
+
+
+if __name__ == "__main__":
+    open_window_1()
+
